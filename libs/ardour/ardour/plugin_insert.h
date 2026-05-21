@@ -243,6 +243,8 @@ public:
 
 	std::shared_ptr<ReadOnlyControl> control_output (uint32_t) const;
 
+  std::shared_ptr<PBD::Controllable> bypass_control () const;
+
 	std::string describe_parameter (Evoral::Parameter param);
 
 	samplecnt_t signal_latency () const;
@@ -392,6 +394,24 @@ private:
 	PBD::TimingStats  _timing_stats;
 	std::atomic<int> _stat_reset;
 	std::atomic<int> _flush;
+
+	/** AutomationControl that wraps the host-level hard-bypass when the
+	 *  plugin has no native bypass port (_bypass_port == UINT32_MAX).
+	 *  Created in create_automatable_parameters() and registered with
+	 *  add_control() so it appears in what_can_be_automated() and in
+	 *  the processor-box inline control strip. */
+	std::shared_ptr<AutomationControl> _host_bypass_control;
+
+	/** Keeps the plugin's active state in sync when _host_bypass_control is
+	 *  changed (e.g. by automation playback or MIDI learn). */
+	PBD::ScopedConnection _bypass_control_connection;
+
+	/** Keeps the _host_bypass_control stored value in sync when the
+	 *  processor active state is changed through other code paths
+	 *  (e.g. the LED click on the processor entry button). */
+	PBD::ScopedConnection _bypass_active_connection;
+	void sync_bypass_control ();
+	void host_bypass_control_changed ();
 };
 
 } // namespace ARDOUR

@@ -98,6 +98,15 @@ ProcessorUIFrame::ProcessorUIFrame (std::shared_ptr<Route> r, std::shared_ptr<Pr
 	set_tooltip (&_enable_btn, _("Bypass"));
 
 	_enable_btn.set_active (_proc->enabled ());
+	/* Wire the bypass LED to bypass_control() so that Ctrl+Middle-Click
+	 * MIDI learn works in the collapsed view, just like in the full
+	 * plugin window. */
+	{
+		std::shared_ptr<PluginInsert> pi = std::dynamic_pointer_cast<PluginInsert> (p);
+		if (pi) {
+			_enable_btn.set_controllable (pi->bypass_control ());
+		}
+	}
 	_collapse_btn.signal_clicked.connect ([&] () {
 			bool a = !_collapse_btn.get_active ();
 			_ui->set_visible (a);

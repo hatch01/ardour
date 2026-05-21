@@ -242,6 +242,14 @@ ProcessorEntry::ProcessorEntry (ProcessorBox* parent, std::shared_ptr<Processor>
 		_processor->PropertyChanged.connect (name_connection, invalidator (*this), std::bind (&ProcessorEntry::processor_property_changed, this, _1), gui_context());
 		_processor->ConfigurationChanged.connect (config_connection, invalidator (*this), std::bind (&ProcessorEntry::processor_configuration_changed, this, _1, _2), gui_context());
 
+		/* Allow Ctrl+Middle-Click MIDI learn on the processor LED for
+		 * plugin inserts. bypass_control() always returns a valid
+		 * controllable (either the plugin's own bypass port or the
+		 * host-level automation control created for plugins without one). */
+		if (pi) {
+			_button.set_controllable (pi->bypass_control ());
+		}
+
 		const uint32_t limit_inline_controls = UIConfiguration::instance().get_max_inline_controls ();
 
 		set<Evoral::Parameter> p = _processor->what_can_be_automated ();
